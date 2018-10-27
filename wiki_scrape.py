@@ -85,7 +85,6 @@ for title in all_titles:
     i=i+1
     if i%100==0:
         print(" ",i, end="", flush=True)
-        break
     if i%1000==0:
         print("\n")
     for phrase in all_titles[title]:
