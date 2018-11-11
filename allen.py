@@ -1,6 +1,7 @@
 from allennlp.predictors.coref import CorefPredictor
 from allennlp.predictors.predictor import Predictor
 import numpy as np
+import wikipedia
 
 class coref:
     
@@ -50,11 +51,38 @@ class ner:
     def predict(self,document):
         return self.predictor.predict(document)
 
+    def wikify(self,document):
+        
+        result = self.predict(document)        
+        tags = result['tags']
+        words = result['words']
+        
+        proc,temp_str ='<p>',''
+        for i in range(len(words)):
+            if tags[i]=='O':
+                if temp_str:
+                    title = wikipedia.search(temp_str)[0]
+                    anchor = "<a href=\"" + wikipedia.page(title).url +"\" title=\""+title+"\"> " + temp_str + "</a>"
+                    proc = proc + ' ' + anchor
+                    temp_str = ''
+                proc = proc + ' ' + words[i]
+            else:
+                temp_str = temp_str + ' ' + words[i]
+            
+        if temp_str:
+            ne_coll.append(temp_str)
+            proc = proc + ' ' + temp_str
+            temp_str = ''
+        proc = proc + "</p>"
+        return proc        
 
 p1 = coref()
 document = "Cuevas de San Marcos is a town and municipality in the province of Málaga, part of the autonomous community of Andalusia in southern Spain. The municipality is situated in the northern part of the Antequera region, on the border of the province of Córdoba from the river valley of Genil to the Sierra Malnombre and Camorro de Cuevas Altas. It is also located within the comarca of Nororma. It borders the provinces of Granada and Cordoba to the north, the comarcs of La Axarquía to the south and Antequera to the west. The town is situated at an altitude of 420 meters above sea level. By road Cuevas de San Marcos is located 88 kilometers from Málaga and 487 km from Madrid. It is a farming village, with a predominance of olive growing and oil production of the 'Hojiblanca' variety. Its name comes from its patron saint, Mark the Evangelist, and its famous Cave of Belda. Cuevas de San Marcos has a population of approximately 4,000 residents. It covers an area of about 37.50 km2. The natives are called Cuevachos."
 print(p1.resolve(document))
 
-#p2 = ner()
-#document2 = "AllenNLP is a PyTorch-based natural language processing library developed at the Allen Institute for Artificial Intelligence in Seattle."
-#result = p2.predict(document2)
+p2 = ner()
+document2 = "Anthony Endrey was a Hungarian-Australian lawyer and author. He was a Queen's Counsel and Master of the Supreme Court in Victoria, Australia, and a member of the Victorian Bar. Endrey was born in Hungary, and graduated Doctor of Law from the University of Budapest. He was a research assistant at Friedricks-Wilhelm University in Berlin. He served in the Royal Hungarian Army during World War II, and was a prisoner of war in the Soviet Union until his release in 1945. He emigrated to Australia in 1949, and in order to practice in Australia he studied law at the University of Tasmania."
+print(p2.wikify(document2))
+
+
+    
